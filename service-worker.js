@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fencing-planner-v1';
+const CACHE_NAME = 'fencing-planner-v3';
 const ASSETS = [
   '/fencing/',
   '/fencing/index.html',
@@ -42,7 +42,7 @@ self.addEventListener('fetch', e => {
       }).catch(() => {
         // Offline fallback for navigation requests
         if (e.request.mode === 'navigate') {
-          return caches.match('/index.html');
+          return caches.match('/fencing/index.html');
         }
       });
     })
