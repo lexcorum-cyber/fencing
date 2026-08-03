@@ -812,11 +812,6 @@ function renderAnalytics() {
 
 // ── Init ──────────────────────────────────────
 function init() {
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js').catch(() => {});
-  }
-
   // Bottom nav
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => navigate(btn.dataset.page));
