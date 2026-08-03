@@ -1,10 +1,10 @@
 const CACHE_NAME = 'fencing-planner-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/manifest.json',
+  '/fencing/',
+  '/fencing/index.html',
+  '/fencing/styles.css',
+  '/fencing/app.js',
+  '/fencing/manifest.json',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
 ];
 

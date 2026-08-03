@@ -2,12 +2,12 @@
   "name": "Fencing Performance Planner",
   "short_name": "Fencing Planner",
   "description": "Personal fencing training planner and performance tracker",
-  "start_url": "/",
+  "start_url": "/fencing/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",
   "orientation": "portrait",
-  "scope": "/",
+  "scope": "/fencing/",
   "icons": [
     {
       "src": "icons/icon.svg",
