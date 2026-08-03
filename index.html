@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Fencing Planner" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Fencing Performance Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="app">
+
+    <!-- PAGES -->
+    <main id="main-content">
+
+      <!-- DASHBOARD -->
+      <section id="page-dashboard" class="page active">
+        <div class="page-header">
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle" id="dashboard-date"></p>
+        </div>
+        <div class="page-body">
+          <div class="welcome-card card">
+            <div class="welcome-text">
+              <span class="greeting" id="greeting-text">Good morning</span>
+              <h2>Ready to train?</h2>
+            </div>
+            <div class="streak-badge">
+              <span class="streak-number" id="streak-count">0</span>
+              <span class="streak-label">day streak</span>
+            </div>
+          </div>
+
+          <div class="card next-workout-card">
+            <div class="card-label">NEXT WORKOUT</div>
+            <div class="next-workout-info">
+              <div class="next-workout-dot" id="next-workout-dot"></div>
+              <div>
+                <div class="next-workout-title" id="next-workout-title">Loading…</div>
+                <div class="next-workout-day" id="next-workout-day"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card week-progress-card">
+            <div class="card-label">WEEK PROGRESS</div>
+            <div class="progress-ring-container">
+              <svg class="progress-ring" width="100" height="100">
+                <circle class="progress-ring-bg" cx="50" cy="50" r="42" />
+                <circle class="progress-ring-fill" id="progress-ring-fill" cx="50" cy="50" r="42" />
+              </svg>
+              <div class="progress-ring-text">
+                <span id="week-pct">0%</span>
+              </div>
+            </div>
+            <div class="week-stats">
+              <div class="week-stat">
+                <span class="week-stat-num" id="stat-completed">0</span>
+                <span class="week-stat-label">Done</span>
+              </div>
+              <div class="week-stat">
+                <span class="week-stat-num" id="stat-remaining">7</span>
+                <span class="week-stat-label">Left</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-card card strength">
+              <div class="summary-icon">💪</div>
+              <div class="summary-num" id="sum-strength">0</div>
+              <div class="summary-label">Strength</div>
+            </div>
+            <div class="summary-card card running">
+              <div class="summary-icon">🏃</div>
+              <div class="summary-num" id="sum-running">0</div>
+              <div class="summary-label">Running</div>
+            </div>
+            <div class="summary-card card fencing">
+              <div class="summary-icon">🤺</div>
+              <div class="summary-num" id="sum-fencing">0</div>
+              <div class="summary-label">Fencing</div>
+            </div>
+            <div class="summary-card card recovery">
+              <div class="summary-icon">😴</div>
+              <div class="summary-num" id="sum-recovery">0</div>
+              <div class="summary-label">Recovery</div>
+            </div>
+          </div>
+
+          <div class="card week-schedule-card">
+            <div class="card-label">THIS WEEK</div>
+            <div id="week-schedule-list" class="week-schedule-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRAINING PLAN -->
+      <section id="page-plan" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Training Plan</h1>
+          <p class="page-subtitle">Weekly Programme</p>
+        </div>
+        <div class="page-body">
+          <div id="training-plan-list" class="training-plan-list"></div>
+        </div>
+      </section>
+
+      <!-- WORKOUT LOG -->
+      <section id="page-log" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Workout Log</h1>
+          <p class="page-subtitle">Track your sessions</p>
+        </div>
+        <div class="page-body">
+          <div class="log-tabs">
+            <button class="log-tab active" data-log="strength">Strength</button>
+            <button class="log-tab" data-log="running">Running</button>
+            <button class="log-tab" data-log="fencing">Fencing</button>
+          </div>
+
+          <!-- Strength Log Form -->
+          <div id="log-strength" class="log-form-section">
+            <div class="card log-form-card">
+              <h3>Log Strength Session</h3>
+              <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="str-date" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label>Exercise</label>
+                <input type="text" id="str-exercise" class="form-input" placeholder="e.g. Back Squat" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Weight (kg)</label>
+                  <input type="number" id="str-weight" class="form-input" placeholder="0" step="0.5" />
+                </div>
+                <div class="form-group">
+                  <label>Sets</label>
+                  <input type="number" id="str-sets" class="form-input" placeholder="0" />
+                </div>
+                <div class="form-group">
+                  <label>Reps</label>
+                  <input type="number" id="str-reps" class="form-input" placeholder="0" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Notes</label>
+                <textarea id="str-notes" class="form-input form-textarea" placeholder="How did it feel?"></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="saveStrengthLog()">Save Entry</button>
+            </div>
+            <div class="card log-history-card">
+              <h3>Recent Entries</h3>
+              <div id="strength-log-list" class="log-list"></div>
+            </div>
+          </div>
+
+          <!-- Running Log Form -->
+          <div id="log-running" class="log-form-section hidden">
+            <div class="card log-form-card">
+              <h3>Log Run</h3>
+              <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="run-date" class="form-input" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Distance (km)</label>
+                  <input type="number" id="run-distance" class="form-input" placeholder="0.0" step="0.1" />
+                </div>
+                <div class="form-group">
+                  <label>Duration (min)</label>
+                  <input type="number" id="run-duration" class="form-input" placeholder="0" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Avg Pace (min/km)</label>
+                  <input type="text" id="run-pace" class="form-input" placeholder="5:30" />
+                </div>
+                <div class="form-group">
+                  <label>RPE (1-10)</label>
+                  <input type="number" id="run-rpe" class="form-input" min="1" max="10" placeholder="7" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Notes</label>
+                <textarea id="run-notes" class="form-input form-textarea" placeholder="Garmin session notes…"></textarea>
+              </div>
+              <button class="btn btn-primary running" onclick="saveRunningLog()">Save Entry</button>
+            </div>
+            <div class="card log-history-card">
+              <h3>Recent Runs</h3>
+              <div id="running-log-list" class="log-list"></div>
+            </div>
+          </div>
+
+          <!-- Fencing Log Form -->
+          <div id="log-fencing" class="log-form-section hidden">
+            <div class="card log-form-card">
+              <h3>Log Fencing Session</h3>
+              <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="fen-date" class="form-input" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Technical (1-10)</label>
+                  <input type="number" id="fen-technical" class="form-input" min="1" max="10" placeholder="7" />
+                </div>
+                <div class="form-group">
+                  <label>Tactical (1-10)</label>
+                  <input type="number" id="fen-tactical" class="form-input" min="1" max="10" placeholder="7" />
+                </div>
+                <div class="form-group">
+                  <label>Footwork (1-10)</label>
+                  <input type="number" id="fen-footwork" class="form-input" min="1" max="10" placeholder="7" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Notes</label>
+                <textarea id="fen-notes" class="form-input form-textarea" placeholder="Session notes…"></textarea>
+              </div>
+              <button class="btn btn-primary fencing" onclick="saveFencingLog()">Save Entry</button>
+            </div>
+            <div class="card log-history-card">
+              <h3>Recent Sessions</h3>
+              <div id="fencing-log-list" class="log-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RECOVERY -->
+      <section id="page-recovery" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Recovery</h1>
+          <p class="page-subtitle">Daily check-in</p>
+        </div>
+        <div class="page-body">
+          <div class="card log-form-card">
+            <h3>Today's Recovery</h3>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="rec-date" class="form-input" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Sleep (hrs)</label>
+                <input type="number" id="rec-sleep" class="form-input" min="0" max="24" step="0.5" placeholder="8" />
+              </div>
+              <div class="form-group">
+                <label>Bodyweight (kg)</label>
+                <input type="number" id="rec-weight" class="form-input" step="0.1" placeholder="75" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Energy (1-10)</label>
+                <input type="number" id="rec-energy" class="form-input" min="1" max="10" placeholder="7" />
+              </div>
+              <div class="form-group">
+                <label>Fatigue (1-10)</label>
+                <input type="number" id="rec-fatigue" class="form-input" min="1" max="10" placeholder="4" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea id="rec-notes" class="form-input form-textarea" placeholder="How are you feeling today?"></textarea>
+            </div>
+            <button class="btn btn-primary recovery" onclick="saveRecovery()">Save Entry</button>
+          </div>
+
+          <div class="card">
+            <h3>Recent Recovery</h3>
+            <div id="recovery-log-list" class="log-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section id="page-analytics" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Analytics</h1>
+          <p class="page-subtitle">Performance overview</p>
+        </div>
+        <div class="page-body">
+          <div class="card chart-card">
+            <h3>Weekly Adherence %</h3>
+            <canvas id="chart-adherence"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3>Workout Completion by Type</h3>
+            <canvas id="chart-types"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3>Recovery Scores (Last 14 Days)</h3>
+            <canvas id="chart-recovery"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3>Running Distance (Last 8 Weeks)</h3>
+            <canvas id="chart-running"></canvas>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav id="bottom-nav">
+      <button class="nav-btn active" data-page="dashboard">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-btn" data-page="plan">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Plan</span>
+      </button>
+      <button class="nav-btn" data-page="log">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span>Log</span>
+      </button>
+      <button class="nav-btn" data-page="recovery">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>Recovery</span>
+      </button>
+      <button class="nav-btn" data-page="analytics">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Analytics</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
