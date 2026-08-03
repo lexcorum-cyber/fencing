@@ -391,37 +391,18 @@ function renderPlan() {
     card.className = 'plan-day-card' + (expandedDay === day.id ? ' expanded' : '');
     card.dataset.id = day.id;
 
-    const wk = getWeekKey(new Date());
     let sectionsHTML = '';
-    day.sections.forEach((sec, sIdx) => {
-      const { exercises, guests } = getEffectiveExercises(day.id, sIdx, wk);
-
-      const renderEx = (ex, origSecIdx, origExIdx, isGuest) => {
-        const ticked = isExTicked(wk, isGuest ? ex.fromDay : day.id, origSecIdx, origExIdx);
-        const guestLabel = isGuest ? `<span style="font-size:10px;color:var(--text-muted);margin-left:4px">(from ${PROGRAMME.find(d=>d.id===ex.fromDay).short})</span>` : '';
-        return `
-          <div class="exercise-item ${ticked ? 'ticked' : ''}">
-            <button class="exercise-tick ${ticked ? 'done' : ''}"
-              onclick="toggleExTick('${isGuest ? ex.fromDay : day.id}',${origSecIdx},${origExIdx})">
-              ${ticked ? '✓' : ''}
-            </button>
-            <span class="exercise-name">${ex.name}${guestLabel}</span>
-            ${ex.sets ? `<span class="exercise-sets">${ex.sets}</span>` : ''}
-            <button class="exercise-move-btn"
-              onclick="showMoveModal('${isGuest ? ex.fromDay : day.id}',${origSecIdx},${origExIdx},'${ex.name.replace(/'/g,"\\'")}','${ex.sets}','${sec.heading}')">
-              ⇄
-            </button>
-          </div>
-        `;
-      };
-
-      const exHTML = exercises.map(ex => renderEx(ex, ex.origSecIdx, ex.origExIdx, false)).join('');
-      const guestHTML = guests.map(ex => renderEx(ex, ex.origSecIdx, ex.origExIdx, true)).join('');
-
+    day.sections.forEach(sec => {
+      const exHTML = sec.exercises.map(e => `
+        <div class="exercise-item">
+          <span class="exercise-name">${e.name}</span>
+          ${e.sets ? `<span class="exercise-sets">${e.sets}</span>` : ''}
+        </div>
+      `).join('');
       sectionsHTML += `
         <div>
           <div class="plan-section-title">${sec.heading}</div>
-          <div class="exercise-list">${exHTML}${guestHTML}</div>
+          <div class="exercise-list">${exHTML}</div>
         </div>
         <div class="divider"></div>
       `;
@@ -474,132 +455,6 @@ function toggleDayComplete(e, id) {
   if (activeTab === 'dashboard') renderDashboard();
 }
 
-// ── Exercise Ticks ────────────────────────────
-// Key: exerciseTicks → { "weekKey:dayId:sectionIdx:exIdx": true }
-function getExTicks() {
-  return store.get('exerciseTicks', {});
-}
-
-function exTickKey(wk, dayId, secIdx, exIdx) {
-  return `${wk}:${dayId}:${secIdx}:${exIdx}`;
-}
-
-function toggleExTick(dayId, secIdx, exIdx) {
-  const wk = getWeekKey(new Date());
-  const ticks = getExTicks();
-  const key = exTickKey(wk, dayId, secIdx, exIdx);
-  if (ticks[key]) delete ticks[key];
-  else ticks[key] = true;
-  store.set('exerciseTicks', ticks);
-  renderPlan();
-}
-
-function isExTicked(wk, dayId, secIdx, exIdx) {
-  const ticks = getExTicks();
-  return !!ticks[exTickKey(wk, dayId, secIdx, exIdx)];
-}
-
-// ── Move Exercise ─────────────────────────────
-// Moved exercises stored per week: movedExercises → { weekKey: [{name,sets,fromDay,toDay,secHeading},...] }
-function getMovedExercises(wk) {
-  return store.get('movedExercises', {})[wk] || [];
-}
-
-function saveMovedExercises(wk, arr) {
-  const all = store.get('movedExercises', {});
-  all[wk] = arr;
-  store.set('movedExercises', all);
-}
-
-function showMoveModal(dayId, secIdx, exIdx, exName, exSets, secHeading) {
-  // Remove existing modal if any
-  const existing = document.getElementById('move-modal');
-  if (existing) existing.remove();
-
-  const backdrop = document.createElement('div');
-  backdrop.className = 'modal-backdrop';
-  backdrop.id = 'move-modal';
-
-  const otherDays = PROGRAMME.filter(d => d.id !== dayId);
-  const daysHTML = otherDays.map(d => `
-    <button class="modal-day-btn" onclick="moveExercise('${dayId}','${secIdx}','${exIdx}','${d.id}')">
-      <div class="modal-day-dot" style="background:${TYPE_COLORS[d.type]}"></div>
-      <span class="modal-day-name">${d.day} — ${d.title}</span>
-    </button>
-  `).join('');
-
-  backdrop.innerHTML = `
-    <div class="modal-sheet">
-      <div class="modal-title">Move "${exName}"</div>
-      <div class="modal-subtitle">Choose which day to move it to</div>
-      <div class="modal-day-list">${daysHTML}</div>
-      <button class="modal-cancel" onclick="closeMoveModal()">Cancel</button>
-    </div>
-  `;
-
-  backdrop.addEventListener('click', e => { if (e.target === backdrop) closeMoveModal(); });
-  document.body.appendChild(backdrop);
-}
-
-function closeMoveModal() {
-  const m = document.getElementById('move-modal');
-  if (m) m.remove();
-}
-
-function moveExercise(fromDayId, secIdx, exIdx, toDayId) {
-  const wk = getWeekKey(new Date());
-  const fromDay = PROGRAMME.find(d => d.id === fromDayId);
-  const sec = fromDay.sections[secIdx];
-  const ex = sec.exercises[exIdx];
-
-  const moved = getMovedExercises(wk);
-  // Check if already moved from this exact slot — if so, update destination
-  const existing = moved.findIndex(m => m.fromDay === fromDayId && m.secIdx == secIdx && m.exIdx == exIdx);
-  if (existing !== -1) moved.splice(existing, 1);
-
-  moved.push({
-    name: ex.name,
-    sets: ex.sets,
-    fromDay: fromDayId,
-    secIdx: parseInt(secIdx),
-    exIdx: parseInt(exIdx),
-    toDay: toDayId,
-    secHeading: sec.heading
-  });
-
-  saveMovedExercises(wk, moved);
-  closeMoveModal();
-  showToast(`Moved to ${PROGRAMME.find(d => d.id === toDayId).day}`);
-  renderPlan();
-}
-
-// Build the effective exercise list for a day, applying moves
-function getEffectiveExercises(dayId, secIdx, wk) {
-  const day = PROGRAMME.find(d => d.id === dayId);
-  const sec = day.sections[secIdx];
-  const moved = getMovedExercises(wk);
-
-  // Start with base exercises, filter out moved-away ones
-  let exercises = sec.exercises.map((ex, i) => {
-    const movedAway = moved.find(m => m.fromDay === dayId && m.secIdx === secIdx && m.exIdx === i);
-    return movedAway ? null : { ...ex, origSecIdx: secIdx, origExIdx: i, isGuest: false };
-  }).filter(Boolean);
-
-  // Add exercises moved INTO this day (append at end)
-  const guests = moved
-    .filter(m => m.toDay === dayId)
-    .map(m => ({
-      name: m.name,
-      sets: m.sets,
-      origSecIdx: m.secIdx,
-      origExIdx: m.exIdx,
-      fromDay: m.fromDay,
-      isGuest: true,
-      secHeading: m.secHeading
-    }));
-
-  return { exercises, guests };
-}
 
 // ── Log Tab Switching ─────────────────────────
 function switchLogTab(tab) {
